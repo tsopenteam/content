@@ -9,7 +9,6 @@ permissions:
   actions: write
   repository-projects: write
   models: read
-  id-token: read
 
 jobs:
   ping_and_update_json:
