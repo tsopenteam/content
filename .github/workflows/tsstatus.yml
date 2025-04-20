@@ -7,7 +7,9 @@ on:
 permissions:
   contents: write
   actions: write
-  metadata: read
+  repository-projects: write
+  models: read
+  id-token: read
 
 jobs:
   ping_and_update_json:
