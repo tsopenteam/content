@@ -3,7 +3,12 @@ const axios = require('axios');
 
 async function pingTeknoSeyir() {
     try {
-        const response = await axios.get('https://teknoseyir.com/');
+        const response = await axios.get('https://teknoseyir.com/', {
+            headers: {
+                'User-Agent': 'GitHubActionsBot/1.0 (https://github.com/tsopenteam/content)',
+                'Referer': 'https://teknoseyir.com/'
+            }
+        });
         return { status: 'OK', code: response.status };
     } catch (error) {
         return { status: `ERROR: ${error.response ? error.response.status : 'Unknown error'}` };
