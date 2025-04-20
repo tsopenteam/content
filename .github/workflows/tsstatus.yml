@@ -5,8 +5,8 @@ on:
     - cron: '0 * * * *'
 
 permissions:
-  contents: admin
-  actions: admin
+  contents: write
+  actions: write
 
 jobs:
   ping_and_update_json:
