@@ -1,0 +1,33 @@
+name: Ping TeknoSeyir & Update JSON
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
+
+jobs:
+  ping_and_update_json:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: '14.x'
+
+    - name: Install dependencies
+      run: |
+        npm install axios
+
+    - name: Ping TeknoSeyir and Update read.json
+      run: |
+        node jobs/tsstatus.js
+
+    - name: Commit changes and push
+      run: |
+        git config user.name 'tsopen'
+        git config user.email 'tsopenteam@gmail.com'
+        git add ts/read.json
+        git commit -m "bot: update read.json with new ping result"
+        git push
