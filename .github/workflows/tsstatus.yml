@@ -7,6 +7,7 @@ on:
 permissions:
   contents: write
   actions: write
+  metadata: read
 
 jobs:
   ping_and_update_json:
