@@ -9,33 +9,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v2
     
-    - name: Ping TeknoSeyir and get status code
-      id: ping
+    - name: Set up Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: '14.x'
+
+    - name: Install dependencies
       run: |
-        response=$(curl -s -o /dev/null -w "%{http_code}" https://teknoseyir.com/)
-        echo "Ping response: $response"
-        echo "::set-output name=status_code::$response"
-    
-    - name: Update read.json with ping result
+        npm install axios
+
+    - name: Ping TeknoSeyir and Update read.json
       run: |
-        timestamp=$(date +"%d.%m.%Y %H:%M:%S")
-        status_code="${{ steps.ping.outputs.status_code }}"
-        json_data="{\"date\": \"$timestamp\", \"text\": \"ERROR: $status_code\"}"
-        
-        # Check if the response is 200, otherwise log error status
-        if [[ "$status_code" == "200" ]]; then
-          json_data="{\"date\": \"$timestamp\", \"text\": \"OK\"}"
-        fi
-        
-        # Add new entry to the JSON file
-        if [ -f ts/read.json ]; then
-          jq ". += [$json_data]" ts/read.json > tmp.json && mv tmp.json ts/read.json
-        else
-          echo "[]$json_data" > ts/read.json
-        fi
+        node jobs/tsstatus.js
 
     - name: Commit changes and push
       run: |
