@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: '0 * * * *'
 
+permissions:
+  contents: read
+
 jobs:
   ping_and_update_json:
     runs-on: ubuntu-latest
