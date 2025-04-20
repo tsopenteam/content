@@ -2,7 +2,7 @@ name: Ping TeknoSeyir & Update JSON
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '0 * * * *'
 
 jobs:
   ping_and_update_json:
