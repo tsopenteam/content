@@ -18,7 +18,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        npm install axios playwright
+        npm install axios playwright https-proxy-agent
         npx playwright install --with-deps
 
     - name: Ping TeknoSeyir and Update read.json
@@ -36,3 +36,5 @@ jobs:
         else
           echo "No changes to commit"
         fi
+      env:
+        PROXY_URL: ${{ secrets.PROXY_URL }}
