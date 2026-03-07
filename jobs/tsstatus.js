@@ -117,16 +117,9 @@ async function main() {
     const timestamp = new Date().toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' });
     const pingResult = await pingTeknoSeyir();
 
-    let text;
-    if (pingResult.ok) {
-        text = `OK (${pingResult.code})`;
-    } else {
-        text = pingResult.tcp ? `${pingResult.status} - ${pingResult.tcp}` : `${pingResult.status}`;
-    }
-
     const newData = {
         date: timestamp,
-        text
+        text: pingResult && pingResult.ok ? 'OK' : 'ERROR'
     };
 
     await updateJsonFile(newData);
