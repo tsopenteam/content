@@ -18,7 +18,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        npm install axios
+        npm install axios playwright
+        npx playwright install --with-deps
 
     - name: Ping TeknoSeyir and Update read.json
       run: |

@@ -2,6 +2,7 @@ const fs = require('fs');
 const axios = require('axios');
 const net = require('net');
 const { URL } = require('url');
+let playwright;
 
 async function tcpCheck(host, port = 443, timeout = 5000) {
     return new Promise((resolve) => {
@@ -52,7 +53,26 @@ async function pingTeknoSeyir() {
         const tcp = await tcpCheck(host, 443, 5000);
 
         if (statusCode) {
-            return { ok: false, status: `ERROR: ${statusCode} (HTTP blocked)`, tcp: tcp ? 'TCP_OK' : 'TCP_FAIL' };
+                // HTTP returned a code (e.g. 403). Try a real browser to bypass simple bot blocking.
+                if (statusCode === 403) {
+                    try {
+                        if (!playwright) playwright = require('playwright');
+                        const browser = await playwright.chromium.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+                        const page = await browser.newPage();
+                        const resp = await page.goto(url, { timeout: 20000, waitUntil: 'domcontentloaded' });
+                        const bStatus = resp ? resp.status() : null;
+                        await browser.close();
+
+                        if (bStatus && bStatus < 400) {
+                            return { ok: true, status: `OK (via browser ${bStatus})`, code: bStatus };
+                        }
+                        return { ok: false, status: `ERROR: ${statusCode} (HTTP blocked)`, tcp: tcp ? 'TCP_OK' : 'TCP_FAIL', browserStatus: bStatus };
+                    } catch (brErr) {
+                        return { ok: false, status: `ERROR: ${statusCode} (HTTP blocked)`, tcp: tcp ? 'TCP_OK' : 'TCP_FAIL', browserError: brErr.message };
+                    }
+                }
+
+                return { ok: false, status: `ERROR: ${statusCode} (HTTP blocked)`, tcp: tcp ? 'TCP_OK' : 'TCP_FAIL' };
         }
 
         return { ok: false, status: `ERROR: ${errCode}`, tcp: tcp ? 'TCP_OK' : 'TCP_FAIL' };
