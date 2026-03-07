@@ -1,16 +1,61 @@
 const fs = require('fs');
 const axios = require('axios');
+const net = require('net');
+const { URL } = require('url');
 
-async function pingTeknoSeyir() {
-    try {
-        const response = await axios.get('https://teknoseyir.com/', {
-            headers: {
-                'User-Agent': 'request'
+async function tcpCheck(host, port = 443, timeout = 5000) {
+    return new Promise((resolve) => {
+        const socket = net.connect(port, host);
+        let finished = false;
+
+        socket.on('connect', () => {
+            finished = true;
+            socket.destroy();
+            resolve(true);
+        });
+
+        socket.on('error', () => {
+            if (!finished) {
+                finished = true;
+                resolve(false);
             }
         });
-        return { status: 'OK', code: response.status };
+
+        socket.setTimeout(timeout, () => {
+            if (!finished) {
+                finished = true;
+                socket.destroy();
+                resolve(false);
+            }
+        });
+    });
+}
+
+async function pingTeknoSeyir() {
+    const url = 'https://teknoseyir.com/';
+    try {
+        const response = await axios.get(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
+                'Referer': 'https://www.google.com/'
+            },
+            timeout: 15000
+        });
+
+        return { ok: true, status: 'OK', code: response.status };
     } catch (error) {
-        return { status: `ERROR: ${error.response ? error.response.status : 'Unknown error'}` };
+        const statusCode = error.response ? error.response.status : null;
+        const errCode = error.code || (statusCode ? `HTTP_${statusCode}` : 'Unknown');
+        const host = new URL(url).hostname;
+        const tcp = await tcpCheck(host, 443, 5000);
+
+        if (statusCode) {
+            return { ok: false, status: `ERROR: ${statusCode} (HTTP blocked)`, tcp: tcp ? 'TCP_OK' : 'TCP_FAIL' };
+        }
+
+        return { ok: false, status: `ERROR: ${errCode}`, tcp: tcp ? 'TCP_OK' : 'TCP_FAIL' };
     }
 }
 
@@ -31,9 +76,17 @@ async function updateJsonFile(newData) {
 async function main() {
     const timestamp = new Date().toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' });
     const pingResult = await pingTeknoSeyir();
+
+    let text;
+    if (pingResult.ok) {
+        text = `OK (${pingResult.code})`;
+    } else {
+        text = pingResult.tcp ? `${pingResult.status} - ${pingResult.tcp}` : `${pingResult.status}`;
+    }
+
     const newData = {
         date: timestamp,
-        text: pingResult.status
+        text
     };
 
     await updateJsonFile(newData);
