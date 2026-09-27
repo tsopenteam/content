@@ -9,7 +9,8 @@ async function pingSite() {
             status: response.status
         };
     } catch (error) {
-        console.log('pingSite ERROR:', error.message);
+        console.error('pingSite ERROR:', error);
+        console.error('Cause:', error.cause);
 
         return {
             ok: false,
