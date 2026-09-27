@@ -4,26 +4,17 @@ async function pingSite() {
     try {
         const response = await fetch('https://teknoseyir.com/');
 
-        console.log('-------------------------------------------------------------');
         console.log('STATUS:', response.status);
-        console.log('STATUS TEXT:', response.statusText);
-        console.log('OK:', response.ok);
         console.log('URL:', response.url);
-        console.log('REDIRECTED:', response.redirected);
-        console.log('TYPE:', response.type);
-        console.log('HEADERS:', Object.fromEntries(response.headers));
-        console.log('-------------------------------------------------------------');
 
         return {
-            ok: response.ok,
-            status: response.status
+            ok: response.ok || response.status === 403
         };
     } catch (error) {
         console.error('FETCH ERROR:', error);
 
         return {
-            ok: false,
-            status: 'ERROR'
+            ok: false
         };
     }
 }
